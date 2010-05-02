@@ -73,3 +73,6 @@ robots.txt
 templates
 tests
 tmp
+.buildpath
+.project
+.settings
