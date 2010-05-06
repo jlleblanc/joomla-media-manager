@@ -1,0 +1,32 @@
+@CHARSET "UTF-8";
+
+/* Positioning */
+#mediaman
+	{	min-width: 600px; }
+#MMContainer
+	{ padding-left: 200px; padding-right: 200px; height: 450px; }
+#MMContainer div.column
+	{ float: left; position: relative; }
+#MMAreaFolders
+	{ width: 200px; right: 200px; margin-left: -100%; }
+#MMAreaMain
+	{ width: 100%; height: 470px; }
+#MMAreaDetails
+	{ width: 200px; margin-right: -200px; }
+#MMAreaStatus
+	{ clear: both; }
+#MMFoldersPane
+	{ height: 350px; }
+#MMToolbarPane
+	{ height: 40px; }
+#MMFiles
+	{ height: 410px; }
+#MMUploadPane
+	{ display: none; position: absolute; width: 99%; height: 200px; margin-top: -200px; }
+/* Formatting */
+#mediaman fieldset
+	{ border: none; padding: 1px; }
+#mediaman .scrollable
+	{ overflow: scroll; }
+#MMAreaMain
+	{ border-right: thin solid gray; border-left: thin solid gray; }

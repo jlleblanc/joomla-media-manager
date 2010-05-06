@@ -1,3 +1,105 @@
 # Notes
 
-Notes can go here...
+Plugin infrastructure notes (work in progress)
+--------------------------------------------------------------------------------
+The plugins will be placed in plugins/media
+
+onMediaThumbnail( $fileName, &$mimeType, $xSize, $ySize ) :: bool|string
+	This method will be passed the absolute file path to a media file in $fileName
+	and its sniffed MIME type in $mimeType. The media plugin which "understands"
+	the format should generate a thumbnail and return it back to the caller. If it
+	can't handle the MIME type it should return boolean false. The thumbnail should
+	be $xSize by $ySize pixels, in JPEG format. If the file type is non visual, e.g.
+	an audio file, it should always return false. The first published plugin to
+	handle the MIME type gets to generate the thumbnail. It is OK, but not desirable
+	or necessary, for the plugin to do its own MIME type sniffing. If the MIME type
+	has to be modified, i.e. it's not one of the core MIME types understood by the
+	Media Manager, it should be returned back in $mimeType.
+
+onMediaJavascript() :: VOID
+	Since custom previews and custom views may require loading special Javscript
+	libraries on the document's header, this function should add this common
+	initialization Javascript to the document's head section, using JDocument to
+	do that. NOTHING SHOULD BE RETURNED; THIS IS AN EVENT, NOT AN ACTION. For
+	example, it can be used to load a video or audio player.
+
+onMediaPreview( $url, $mimeType ) :: bool|string
+	The absolute URL to a media file and its MIME type are sent to the plugin's
+	method. If the plugin "understands" the MIME type it should return the HTML
+	code necessary to create a preview of the specifed URL. Normally, an <img>
+	tag is returned, but if we're talking about audio or video files a player
+	could be instanciated.
+
+onMediaSections() :: array
+	The plugin should return custom sections descriptors in an array format.
+	Custom sections will be displayed on the Details sidebar, under the "Preview"
+	and "Properties" section and their data will be saved in the "metadata" field
+	of the media file's record. The array format would be:
+		"First Section Title"	=>	array(
+			array(
+				"field_title"	=> "JTEXT_KEY_NAME",
+				"field_tip"		=> "JTEXT_TIP_NAME",
+				"field_key"		=> "prefix.keyname",
+				"type"			=> MM_KEY_TYPE,
+				"parameters"	=> array()
+			),
+			...
+		),
+		"Second Section Title"	=>	array(
+			...
+		)
+	Each inner array fully defines a single row of extra information.
+	JTEXT_KEY_NAME is a translation key for the field's title. Similarly,
+	JTEXT_TIP_NAME is a translation key for the field's tooltip, if desired.
+	Fields are stored in a key/value pair (INI) format in the metadata field of each
+	database record, following a "prefix.keyname" notation. The prefix should be
+	something unique, customarily it is the plugin's name. The keyname can be
+	anything the plugin author wishes.
+	The MM_KEY_TYPE defines the way the field will be rendered on the page. The
+	following table defines the base types and any parameters they may accept:
+	
+	MM_STATIC			Static text, displays the value of the key
+	MM_TEXT				A text input field
+		ac_ajax -> An AJAX action which should return an array of auto-completion values
+		ac_js -> A Javascript function which should return an object to pass to the AJAX action
+	MM_DROPDOWN			A drop-down list
+		* values -> A key/value hash array of the drop-down values
+		ac_ajax -> An AJAX action which should return the values hash array as a JSON-encoded object
+		ac_js -> A Javascript function which should return an object to pass to the AJAX action
+	MM_CHECKBOX			A check-box. It will be checked if the value of the field is non-zero and non-null.
+	MM_BUTTON			A clickable button
+		ac_ajax -> An AJAX action which should be called when the button is clicked
+		ac_js -> A Javascript function which should return an object to pass to the AJAX action
+		ac_callback -> The Javascript callback function of the AJAX request
+
+onMediaAJAX( $act, $data ) :: mixed
+	Handles an AJAX action $act, which may be passed a data object $data. It may
+	return something back to the script. The result will be sent JSON-encoded to
+	the calling page. This is an ultra-powerful way to run arbitrary functions
+	against a media file from the GUI!
+
+onMediaProperties( $file, $mimeType ) :: bool|array
+	This should return a set of extra sections' property values. For example, it can
+	be used to populate metadata from IPCT/EXIF information. The returned array should
+	be a simple hashed array in the format "prefix.keyname" => value. If the plugin
+	can't handle the $mimeType it should return boolean false. This function is called
+	exactly after onMediaThumbnail, so the $mimeType should be assumed correct and not
+	sniffed again.
+
+onMediaActionList( $mimeType ) :: bool|array
+	This method allows extending the GUI with custom actions per MIME type.
+	TO-DO
+
+onCDNUpload( $fileName, $params )
+	TO-DO
+
+onCDNOptions
+	TO-DO
+
+Scheme notes:
+--------------------------------------------------------------------------------
+Image metadata not having a specific field in the table, e.g. creator/photographer,
+license, EXIF/IPCT data and so on, will be stored in INI format in the metadata
+field. Plugins are responsible for providing this metadata to the core and for
+providing a set of field definitions which will be used when rendering the details
+side bar.
